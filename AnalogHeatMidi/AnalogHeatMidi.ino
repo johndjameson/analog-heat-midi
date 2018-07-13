@@ -32,43 +32,59 @@ void setup() {
   MIDI.begin(MIDI_CHANNEL_OFF);
 }
 
+void decrementProgram() {
+  if (program == 0) {
+    program = 127;
+  } else {
+    program--;
+  }
+}
+
+void incrementProgram() {
+  if (program == 127) {
+    program = 0;
+  } else {
+    program++;
+  }
+}
+
+void updateDebouncers() {
+  nextDebouncer.update();
+  previousDebouncer.update();
+}
+
 void loop() {
   bool queueProgramChange = false;
 
   time = millis();
 
-  nextDebouncer.update();
-  previousDebouncer.update();
+  updateDebouncers();
 
   if (nextDebouncer.fell()) {
-    if (program == 127) {
-      program = 0;
-    } else {
-      program++;
-    }
-
     timeNextPressed = time;
     queueProgramChange = true;
+
+    incrementProgram()
   }
 
-  if (nextDebouncer.rose()) {
+  if (nextDebouncer.read() == LOW) {
     durationNextHeld = time - timeNextPressed;
 
     if (durationNextHeld > 500) {
-      durationNextHeld = 0;
+      digitalWrite(LED_PIN, HIGH);
       program = 0;
       queueProgramChange = true;
     }
+  } else {
+    durationNextHeld = 0;
+
+    digitalWrite(LED_PIN, LOW);
   }
 
   if (previousDebouncer.fell()) {
-    if (program == 0) {
-      program = 127;
-    } else {
-      program--;
-    }
-
     queueProgramChange = true;
+
+    decrementProgram()
   }
 
   if (queueProgramChange) {
