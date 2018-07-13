@@ -1,17 +1,11 @@
 #include <Bounce2.h>
 #include <MIDI.h>
 
-#define LED_PIN 13
 #define NEXT_PIN 8
 #define PREVIOUS_PIN 7
 
 int channel = 1;
 int program = 0;
-unsigned long durationNextHeld;
-unsigned long durationPreviousHeld;
-unsigned long time;
-unsigned long timeNextPressed;
-unsigned long timePreviousPressed;
 
 Bounce nextDebouncer = Bounce();
 Bounce previousDebouncer = Bounce();
@@ -19,7 +13,6 @@ Bounce previousDebouncer = Bounce();
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 void setup() {
-  pinMode(LED_PIN, OUTPUT);
   pinMode(NEXT_PIN, INPUT_PULLUP);
   pinMode(PREVIOUS_PIN, INPUT_PULLUP);
 
@@ -56,35 +49,18 @@ void updateDebouncers() {
 void loop() {
   bool queueProgramChange = false;
 
-  time = millis();
-
   updateDebouncers();
 
   if (nextDebouncer.fell()) {
-    timeNextPressed = time;
     queueProgramChange = true;
 
-    incrementProgram()
-  }
-
-  if (nextDebouncer.read() == LOW) {
-    durationNextHeld = time - timeNextPressed;
-
-    if (durationNextHeld > 500) {
-      digitalWrite(LED_PIN, HIGH);
-      program = 0;
-      queueProgramChange = true;
-    }
-  } else {
-    durationNextHeld = 0;
-
-    digitalWrite(LED_PIN, LOW);
+    incrementProgram();
   }
 
   if (previousDebouncer.fell()) {
     queueProgramChange = true;
 
-    decrementProgram()
+    decrementProgram();
   }
 
   if (queueProgramChange) {
